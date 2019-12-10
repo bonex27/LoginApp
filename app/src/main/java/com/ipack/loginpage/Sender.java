@@ -86,7 +86,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
         } else if (arr[0].equals("0"))
         {
             //NO SUCCESS
-            Toast.makeText(c, "Errore " + response, Toast.LENGTH_LONG).show();
+            Toast.makeText(c, "Utente non trovato " + response, Toast.LENGTH_LONG).show();
         }
     }
 
