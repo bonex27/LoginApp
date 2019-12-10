@@ -2,19 +2,13 @@ package com.ipack.loginpage;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.ipack.loginpage.ui.login.LoginActivity;
-
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 
 /**
@@ -83,16 +77,16 @@ public class Sender extends AsyncTask<Void,Void,String> {
 
         pd.dismiss();
 
-        if(response != null)
+        String[] arr = response.split("@");
+        if (arr[0].equals("1"))
         {
             //SUCCESS
-            Toast.makeText(c,response,Toast.LENGTH_LONG).show();
-            user.setText("Good");
-            pass.setText("");
-        }else
+            Toast.makeText(c, "Nome: " + arr[2] + " Cognome:" + arr[3], Toast.LENGTH_LONG).show();
+
+        } else if (arr[0].equals("0"))
         {
             //NO SUCCESS
-            Toast.makeText(c,"Unsuccessful "+response,Toast.LENGTH_LONG).show();
+            Toast.makeText(c, "Errore " + response, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -103,7 +97,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
     private String send()
     {
         //CONNECT
-        HttpURLConnection con = Connector.connect(urlAddress);
+        HttpURLConnection con = Connector.connect(urlAddress + "?user=" + userT + "&pass=" + passT);
 
         if(con==null)
         {
@@ -112,22 +106,12 @@ public class Sender extends AsyncTask<Void,Void,String> {
 
         try
         {
-            OutputStream os=con.getOutputStream();
 
-            //WRITE
-            BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(os,"UTF-8"));
-            bw.write(new DataPackager(userT,passT).packData());
-
-            bw.flush();
-
-            //RELEASE RES
-            bw.close();
-            os.close();
 
             //HAS IT BEEN SUCCESSFUL?
             int responseCode=con.getResponseCode();
 
-            if(responseCode==con.HTTP_OK)
+            if (responseCode == HttpURLConnection.HTTP_OK)
             {
                 //GET EXACT RESPONSE
                 BufferedReader br=new BufferedReader(new InputStreamReader(con.getInputStream()));
