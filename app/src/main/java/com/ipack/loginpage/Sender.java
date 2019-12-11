@@ -2,6 +2,7 @@ package com.ipack.loginpage;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -82,6 +83,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
         {
             //SUCCESS
             Toast.makeText(c, "Nome: " + arr[2] + " Cognome:" + arr[3], Toast.LENGTH_LONG).show();
+            this.c.startActivity(new Intent(this.c, LoginSuccess.class));
 
         } else if (arr[0].equals("0"))
         {
@@ -132,7 +134,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
 
             }else
             {
-
+                Toast.makeText(c, "Errore connessione server", Toast.LENGTH_LONG).show();
             }
 
         } catch (IOException e) {
