@@ -7,12 +7,16 @@ import android.os.AsyncTask;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.BufferedWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 1.SEND DATA FROM EDITTEXT OVER THE NETWORK
@@ -33,27 +37,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
             1.OUR CONSTRUCTOR
     2.RECEIVE CONTEXT,URL ADDRESS AND EDITTEXTS FROM OUR MAINACTIVITY
     */
-    public static String getMD5EncryptedValue(String password) {
-        final byte[] defaultBytes = password.getBytes();
-        try {
-            final MessageDigest md5MsgDigest = MessageDigest.getInstance("MD5");
-            md5MsgDigest.reset();
-            md5MsgDigest.update(defaultBytes);
-            final byte[] messageDigest = md5MsgDigest.digest();
-            final StringBuffer hexString = new StringBuffer();
-            for (final byte element : messageDigest) {
-                final String hex = Integer.toHexString(0xFF & element);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-            password = hexString + "";
-        } catch (final NoSuchAlgorithmException nsae) {
-            nsae.printStackTrace();
-        }
-        return password;
-    }
+
 
     public Sender(Context c, String urlAddress,EditText...editTexts) {
         this.c = c;
@@ -65,7 +49,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
 
         //GET TEXTS FROM EDITEXTS
         userT=user.getText().toString();
-        passT = getMD5EncryptedValue(pass.getText().toString());
+        passT = pass.getText().toString();
 
 
     }
@@ -88,7 +72,21 @@ public class Sender extends AsyncTask<Void,Void,String> {
      */
     @Override
     protected String doInBackground(Void... params) {
-        return this.send();
+        JSONObject postDataParams = new JSONObject();
+        try {
+            //GET Request
+            //return RequestHandler.sendGet("https://prodevsblog.com/android_get.php");
+
+            // POST Request
+
+            postDataParams.put("user", this.userT);
+            postDataParams.put("pass", this.passT);
+
+            return send(postDataParams);
+        } catch (Exception e) {
+            return "Exception: " + e.getMessage();
+        }
+        // return this.send(postDataParams);
     }
 
     /*
@@ -101,70 +99,59 @@ public class Sender extends AsyncTask<Void,Void,String> {
         super.onPostExecute(response);
 
         pd.dismiss();
+        try {
+            JSONObject reader = new JSONObject(response);
+            String sys = reader.getString("status");
+            //String[] arr = response.split("@");
+            if (reader.getString("status").equals("1")) {
+                //SUCCESS
+                Toast.makeText(c, "Nome: " + reader.getString("name") + " Cognome:" + reader.getString("sname"), Toast.LENGTH_LONG).show();
+                this.c.startActivity(new Intent(this.c, LoginSuccess.class));
 
-        String[] arr = response.split("@");
-        if (arr[0].equals("1"))
-        {
-            //SUCCESS
-            Toast.makeText(c, "Nome: " + arr[2] + " Cognome:" + arr[3], Toast.LENGTH_LONG).show();
-            this.c.startActivity(new Intent(this.c, LoginSuccess.class));
-
-        } else if (arr[0].equals("0"))
-        {
-            //NO SUCCESS
-            Toast.makeText(c, "Utente non trovato " + response, Toast.LENGTH_LONG).show();
+            } else if (reader.getString("status").equals("0")) {
+                //NO SUCCESS
+                Toast.makeText(c, "Utente non trovato!", Toast.LENGTH_LONG).show();
+            } else if (reader.getString("status").equals("2")) {
+                //NO SUCCESS
+                Toast.makeText(c, "Password errata!", Toast.LENGTH_LONG).show();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
-    /*
-    SEND DATA OVER THE NETWORK
-    RECEIVE AND RETURN A RESPONSE
-     */
-    private String send()
+    /* Invia e riceve i dati dalla connessione http, l' invio viene tramite post della stringa json ottenuta */
+    private String send(JSONObject postDataParams)
     {
         //CONNECT
-        HttpURLConnection con = Connector.connect(urlAddress + "?user=" + userT + "&pass=" + passT);
-
-        if(con==null)
-        {
-            return null;
-        }
-
-        try
-        {
+        //HttpURLConnection con = Connector.connect(urlAddress + "?user=" + userT + "&pass=" + passT);
+        HttpURLConnection con = Connector.connect(urlAddress);
 
 
-            //HAS IT BEEN SUCCESSFUL?
-            int responseCode=con.getResponseCode();
+        try {
+            OutputStream os = con.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
+            writer.write(postDataParams.toString());
+            writer.flush();
+            writer.close();
+            os.close();
 
-            if (responseCode == HttpURLConnection.HTTP_OK)
-            {
-                //GET EXACT RESPONSE
-                BufferedReader br=new BufferedReader(new InputStreamReader(con.getInputStream()));
-                StringBuffer response=new StringBuffer();
+            int responseCode = con.getResponseCode(); // To Check for 200
+            if (responseCode == HttpURLConnection.HTTP_OK) {
 
-                String line;
-
-                //READ LINE BY LINE
-                while ((line=br.readLine()) != null)
-                {
-                    response.append(line);
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine = null;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    return response.toString();
                 }
-
-                //RELEASE RES
-                br.close();
-
-                return response.toString();
-
-            }else
-            {
-                Toast.makeText(c, "Errore connessione server", Toast.LENGTH_LONG).show();
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(e);
         }
-
         return null;
     }
 
