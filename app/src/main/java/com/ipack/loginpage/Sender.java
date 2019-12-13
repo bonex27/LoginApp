@@ -27,10 +27,10 @@ public class Sender extends AsyncTask<Void,Void,String> {
 
     Context c;
     String urlAddress;
-    EditText user,pass;
+    EditText user, pass, nome, cognome, dataN, email;
 
-    String userT,passT;
-
+    String userT, passT, nomeT, cognomeT, dataNT, emailT;
+    boolean REG;
     ProgressDialog pd;
 
     /*
@@ -39,18 +39,29 @@ public class Sender extends AsyncTask<Void,Void,String> {
     */
 
 
-    public Sender(Context c, String urlAddress,EditText...editTexts) {
+    public Sender(Context c, String urlAddress, boolean reg, EditText... editTexts) {
         this.c = c;
         this.urlAddress = urlAddress;
+        this.REG = reg;
+        /*
+         * Viene utilizzata quando registriamo un nuovo utente
+         */
+        if (reg == true) {
+            this.nomeT = editTexts[0].getText().toString();
+            this.cognomeT = editTexts[1].getText().toString();
+            this.userT = editTexts[2].getText().toString();
+            this.dataNT = editTexts[3].getText().toString();
+            this.emailT = editTexts[4].getText().toString();
+            this.passT = editTexts[5].getText().toString();
+        } else {
+            //INPUT EDITTEXTS
+            this.user = editTexts[0];
+            this.pass = editTexts[1];
 
-        //INPUT EDITTEXTS
-        this.user=editTexts[0];
-        this.pass=editTexts[1];
-
-        //GET TEXTS FROM EDITEXTS
-        userT=user.getText().toString();
-        passT = pass.getText().toString();
-
+            //GET TEXTS FROM EDITEXTS
+            userT = user.getText().toString();
+            passT = pass.getText().toString();
+        }
 
     }
     /*
@@ -74,13 +85,21 @@ public class Sender extends AsyncTask<Void,Void,String> {
     protected String doInBackground(Void... params) {
         JSONObject postDataParams = new JSONObject();
         try {
-            //GET Request
-            //return RequestHandler.sendGet("https://prodevsblog.com/android_get.php");
+            /*
+             *Se si registra un nuovo utente creiamo un json con i suoi dati
+             */
+            if (REG) {
+                postDataParams.put("nome", this.nomeT);
+                postDataParams.put("cognome", this.cognomeT);
+                postDataParams.put("user", this.userT);
+                postDataParams.put("dataN", this.dataNT);
+                postDataParams.put("email", this.emailT);
+                postDataParams.put("pass", this.passT);
+            } else {
+                postDataParams.put("user", this.userT);
+                postDataParams.put("pass", this.passT);
+            }
 
-            // POST Request
-
-            postDataParams.put("user", this.userT);
-            postDataParams.put("pass", this.passT);
 
             return send(postDataParams);
         } catch (Exception e) {
@@ -99,24 +118,29 @@ public class Sender extends AsyncTask<Void,Void,String> {
         super.onPostExecute(response);
 
         pd.dismiss();
-        try {
-            JSONObject reader = new JSONObject(response);
-            String sys = reader.getString("status");
-            //String[] arr = response.split("@");
-            if (reader.getString("status").equals("1")) {
-                //SUCCESS
-                Toast.makeText(c, "Nome: " + reader.getString("name") + " Cognome:" + reader.getString("sname"), Toast.LENGTH_LONG).show();
-                this.c.startActivity(new Intent(this.c, LoginSuccess.class));
+        if (REG) {
+            Toast.makeText(c, "We have done it!", Toast.LENGTH_LONG).show();
+            //this.c.startActivity(new Intent(this.c, LoginSuccess.class));
+        } else {
+            try {
+                JSONObject reader = new JSONObject(response);
+                String sys = reader.getString("status");
+                //String[] arr = response.split("@");
+                if (reader.getString("status").equals("1")) {
+                    //SUCCESS
+                    Toast.makeText(c, "Nome: " + reader.getString("name") + " Cognome:" + reader.getString("sname"), Toast.LENGTH_LONG).show();
+                    this.c.startActivity(new Intent(this.c, LoginSuccess.class));
 
-            } else if (reader.getString("status").equals("0")) {
-                //NO SUCCESS
-                Toast.makeText(c, "Utente non trovato!", Toast.LENGTH_LONG).show();
-            } else if (reader.getString("status").equals("2")) {
-                //NO SUCCESS
-                Toast.makeText(c, "Password errata!", Toast.LENGTH_LONG).show();
+                } else if (reader.getString("status").equals("0")) {
+                    //NO SUCCESS
+                    Toast.makeText(c, "Utente non trovato!", Toast.LENGTH_LONG).show();
+                } else if (reader.getString("status").equals("2")) {
+                    //NO SUCCESS
+                    Toast.makeText(c, "Password errata!", Toast.LENGTH_LONG).show();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
     }
 

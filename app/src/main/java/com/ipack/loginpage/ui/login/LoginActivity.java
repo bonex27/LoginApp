@@ -110,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Sender s=new Sender(LoginActivity.this,"http://ipack.dx.am/index.php",usernameEditText,passwordEditText);
+                Sender s = new Sender(LoginActivity.this, "http://ipack.dx.am/index.php", false, usernameEditText, passwordEditText);
                 s.execute();
                 //tryToLogin(usernameEditText.getText().toString(), passwordEditText.getText().toString());
             }
