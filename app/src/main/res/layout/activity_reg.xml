@@ -97,7 +97,7 @@
         android:layout_marginBottom="28dp"
         android:ems="10"
         android:hint="AAAA-MM-GG"
-        android:inputType="date"
+        android:inputType="date|textUri|time"
         app:layout_constraintBottom_toTopOf="@+id/btnConfirm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

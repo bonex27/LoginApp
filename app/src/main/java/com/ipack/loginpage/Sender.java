@@ -72,8 +72,8 @@ public class Sender extends AsyncTask<Void,Void,String> {
         super.onPreExecute();
 
         pd=new ProgressDialog(c);
-        pd.setTitle("Send");
-        pd.setMessage("Sending..Please wait");
+        pd.setTitle("Login");
+        pd.setMessage("Loging..Please wait");
         pd.show();
     }
 
@@ -118,18 +118,31 @@ public class Sender extends AsyncTask<Void,Void,String> {
         super.onPostExecute(response);
 
         pd.dismiss();
+
         if (REG) {
-            Toast.makeText(c, "We have done it!", Toast.LENGTH_LONG).show();
-            //this.c.startActivity(new Intent(this.c, LoginSuccess.class));
-        } else {
+
             try {
                 JSONObject reader = new JSONObject(response);
-                String sys = reader.getString("status");
+                if (reader.getString("status").equals("1")) {
+                    Toast.makeText(c, "Benvenuto " + reader.getString("nome"), Toast.LENGTH_LONG).show();
+                    this.c.startActivity(new Intent(this.c, LoginSuccess.class));
+                } else {
+                    Toast.makeText(c, "Errore nella registrazione!", Toast.LENGTH_LONG).show();
+                }
+
+            } catch (JSONException e) {
+                Toast.makeText(c, "Errore nella registrazione!", Toast.LENGTH_LONG).show();
+            }
+        } else {
+            try {
+
+                JSONObject reader = new JSONObject(response);
                 //String[] arr = response.split("@");
                 if (reader.getString("status").equals("1")) {
                     //SUCCESS
-                    Toast.makeText(c, "Nome: " + reader.getString("name") + " Cognome:" + reader.getString("sname"), Toast.LENGTH_LONG).show();
+                    Toast.makeText(c, "Benvenuto: " + reader.getString("name"), Toast.LENGTH_LONG).show();
                     this.c.startActivity(new Intent(this.c, LoginSuccess.class));
+
 
                 } else if (reader.getString("status").equals("0")) {
                     //NO SUCCESS
@@ -140,6 +153,7 @@ public class Sender extends AsyncTask<Void,Void,String> {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+                Toast.makeText(c, "Errore nel login!", Toast.LENGTH_LONG).show();
             }
         }
     }
