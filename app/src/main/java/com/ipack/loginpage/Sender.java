@@ -126,8 +126,10 @@ public class Sender extends AsyncTask<Void,Void,String> {
                 if (reader.getString("status").equals("1")) {
                     Toast.makeText(c, "Benvenuto " + reader.getString("nome"), Toast.LENGTH_LONG).show();
                     this.c.startActivity(new Intent(this.c, LoginSuccess.class));
-                } else {
-                    Toast.makeText(c, "Errore nella registrazione!", Toast.LENGTH_LONG).show();
+                } else if (reader.getString("status").equals("-1")) {
+                    Toast.makeText(c, "User gia presente!", Toast.LENGTH_LONG).show();
+                } else if (reader.getString("status").equals("-2")) {
+                    Toast.makeText(c, "Email gia presente!", Toast.LENGTH_LONG).show();
                 }
 
             } catch (JSONException e) {
